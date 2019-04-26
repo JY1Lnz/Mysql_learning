@@ -20,22 +20,39 @@ class MySql(object):
             if tablename in table:
                 print("表:"+tablename+"已经被创建")
                 return False  # 如果表已经被创建则直接返回
-        sql = "CREATE TABLE %s ( \
-                NAME CHAR(20), \
-                NUMBER CHAR(20), \
-                SEX CHAR(1) \
-                )" % tablename
+        sql = "CREATE TABLE %s (" \
+              "NAME CHAR(20), " \
+              "NUMBER CHAR(20), " \
+              "SEX CHAR(1) " \
+              ")ENGINE=InnoDB DEFAULT CHARSET=utf8" \
+              "" % tablename
         self.cursor.execute(sql)
         return True
+
+    def DeleteTable(self, tablename):
+        self.cursor.execute("SHOW TABLES")  # 显示所有表
+        result = self.cursor.fetchall()
+        for table in result:
+            if tablename in table:
+                sql = "DROP TABLE %s" % tablename
+                try:
+                    self.cursor.execute(sql)
+                    self.database.commit()
+                    print("删除表:"+tablename+"成功")
+                except:
+                    self.database.rollback()
+                return True
+        print("未找到表:"+tablename)
+        return False
 
     def InsertInformation(self, tablename, name, number, sex):
         """给表中插入数据"""
         try:
-            sql = "INSERT INTO %s \
-                    (NAME, NUMBER, SEX) \
-                    VALUES \
-                    ('%s', '%s', '%s')" % \
-                    (tablename, name, number, sex)
+            sql = "INSERT INTO %s" \
+                  "(NAME, NUMBER, SEX)" \
+                  "VALUES" \
+                  "('%s', '%s', '%s')" \
+                  % (tablename, name, number, sex)
             try:
                 self.cursor.execute(sql)
                 self.database.commit()
@@ -61,11 +78,41 @@ class MySql(object):
             return False
         return True
 
-    def DeleteInformation(self, tablename, isempty=False):
+    def DeleteInformation(self, tablename, dataname, isempty=False):
         if isempty:
             try:
                 self.cursor.execute("DELETE FROM %s" % tablename)
                 self.database.commit()
             except:
                 self.database.rollback()
+        else:
+            sql = "DELETE FROM %s " \
+                  "WHERE NAME='%s'" % (tablename, dataname)
+            try:
+                self.cursor.execute(sql)
+                self.database.commit()
+                print("删除数据成功")
+                return True
+            except:
+                self.database.rollback()
+                return False
 
+    def UpdateInformation(self, tablename, dataname, number=False, sex=False):
+        if number:
+            sql = "UPDATE %s SET NUMBER='%s'" \
+                  "WHERE NAME='%s'" % (tablename, number, dataname)
+            try:
+                self.cursor.execute(sql)
+                self.database.commit()
+            except:
+                self.database.rollback()
+        if sex:
+            sql = "UPDATE %s SET SEX='%s'" \
+                  "WHERE NAME='%s'" % (tablename, sex, dataname)
+            try:
+                self.cursor.execute(sql)
+                self.database.commit()
+            except:
+                self.database.rollback()
+
+my = MySql('root', 'jyl1126051x', 'YDDDD')
